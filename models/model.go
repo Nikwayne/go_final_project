@@ -9,10 +9,6 @@ type Task struct {
 	Repeat  string `json:"repeat" gorm:"size:128"`                           // строковое поле не более 128 символов
 }
 
-type Tabler interface {
-	TableName() string
-}
-
 // TableName overrides the table name used by Task to `scheduler` in gorm automigrate
 func (Task) TableName() string {
 	return "scheduler"

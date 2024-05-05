@@ -1,4 +1,4 @@
-module github.com/bconskri/go_final_project
+module github.com/Nikwayne/go_final_project
 
 go 1.21.5
 

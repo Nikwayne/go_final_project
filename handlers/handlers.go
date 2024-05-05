@@ -11,8 +11,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/bconskri/go_final_project/database"
-	"github.com/bconskri/go_final_project/models"
+	"github.com/Nikwayne/go_final_project/database"
+	"github.com/Nikwayne/go_final_project/models"
 )
 
 const DATE_FORMAT string = "20060102"
@@ -85,7 +85,7 @@ func NextDateGET(w http.ResponseWriter, r *http.Request) {
 }
 
 func responseWithError(w http.ResponseWriter, err error) {
-	log.Printf("Error: %W", err)
+	log.Printf("Error: %w", err)
 
 	error, _ := json.Marshal(models.ResponseError{Error: err.Error()})
 
@@ -93,7 +93,7 @@ func responseWithError(w http.ResponseWriter, err error) {
 	_, err = w.Write(error)
 
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		http.Error(w, "Internal error", http.StatusInternalServerError)
 	}
 }
 
@@ -141,7 +141,8 @@ func TaskPost(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if result := database.Db.Create(&task); result.Error != nil {
-		responseWithError(w, result.Error)
+		log.Fatalf("Err: %s", result.Error)
+		http.Error(w, "Internal error", http.StatusInternalServerError)
 		return
 	}
 
@@ -169,11 +170,11 @@ func TasksRead(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	//w.WriteHeader(http.StatusOK)
 	_, err = w.Write(tasksData)
-	log.Println(fmt.Sprintf("Read %d tasks", len(tasks)))
 
 	if err != nil {
 		responseWithError(w, err)
 	}
+	log.Println(fmt.Sprintf("Read %d tasks", len(tasks)))
 }
 
 func TaskReadByID(w http.ResponseWriter, r *http.Request) {
@@ -332,12 +333,10 @@ func TaskDelete(w http.ResponseWriter, r *http.Request) {
 		responseWithError(w, err)
 		return
 	}
-
 	if task, err = database.ReadTaskByID(uint(id)); err != nil {
 		responseWithError(w, err)
 		return
 	}
-
 	if result := database.Db.Delete(&task); result.Error != nil {
 		responseWithError(w, result.Error)
 		return
