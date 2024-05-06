@@ -107,7 +107,7 @@ func TaskPost(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := json.Unmarshal(buf.Bytes(), &task); err != nil {
-		http.Error(w, "Internal error", http.StatusInternalServerError)
+		responseWithError(w, err)
 		return
 	}
 
@@ -213,12 +213,12 @@ func TaskUpdate(w http.ResponseWriter, r *http.Request) {
 	var buf bytes.Buffer
 
 	if _, err := buf.ReadFrom(r.Body); err != nil {
-		http.Error(w, "Internal error", http.StatusInternalServerError)
+		responseWithError(w, err)
 		return
 	}
 
 	if err := json.Unmarshal(buf.Bytes(), &task); err != nil {
-		http.Error(w, "Internal error", http.StatusInternalServerError)
+		responseWithError(w, err)
 		return
 	}
 
