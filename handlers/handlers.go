@@ -102,12 +102,12 @@ func TaskPost(w http.ResponseWriter, r *http.Request) {
 	var buf bytes.Buffer
 
 	if _, err := buf.ReadFrom(r.Body); err != nil {
-		responseWithError(w, err)
+		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
 	if err := json.Unmarshal(buf.Bytes(), &task); err != nil {
-		responseWithError(w, err)
+		http.Error(w, "Internal error", http.StatusInternalServerError)
 		return
 	}
 
@@ -128,7 +128,7 @@ func TaskPost(w http.ResponseWriter, r *http.Request) {
 
 		if len(task.Repeat) > 0 {
 			if nextDate, err := nextDate(time.Now(), task.Date, task.Repeat); err != nil {
-				responseWithError(w, err)
+				http.Error(w, err.Error(), http.StatusBadRequest)
 				return
 			} else if task.Date < time.Now().Format(DATE_FORMAT) {
 				task.Date = nextDate
@@ -162,7 +162,7 @@ func TasksRead(w http.ResponseWriter, r *http.Request) {
 	var err error
 
 	if tasks, err = database.ReadTasks(); err != nil {
-		responseWithError(w, err)
+		http.Error(w, "Internal error", http.StatusInternalServerError)
 		return
 	}
 
@@ -201,11 +201,11 @@ func TaskReadByID(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	//w.WriteHeader(http.StatusOK)
 	_, err = w.Write(tasksData)
-	log.Println(fmt.Sprintf("Read task. Id = %d", task.ID))
 
 	if err != nil {
 		responseWithError(w, err)
 	}
+	log.Println(fmt.Sprintf("Read task. Id = %d", task.ID))
 }
 
 func TaskUpdate(w http.ResponseWriter, r *http.Request) {
@@ -213,17 +213,17 @@ func TaskUpdate(w http.ResponseWriter, r *http.Request) {
 	var buf bytes.Buffer
 
 	if _, err := buf.ReadFrom(r.Body); err != nil {
-		responseWithError(w, err)
+		http.Error(w, "Internal error", http.StatusInternalServerError)
 		return
 	}
 
 	if err := json.Unmarshal(buf.Bytes(), &task); err != nil {
-		responseWithError(w, err)
+		http.Error(w, "Internal error", http.StatusInternalServerError)
 		return
 	}
 
 	if _, err := database.ReadTaskByID(task.ID); err != nil {
-		responseWithError(w, err)
+		http.Error(w, fmt.Sprintf(`{"error":"%s"}`, err.Error()), http.StatusInternalServerError)
 		return
 	}
 
@@ -282,7 +282,7 @@ func TaskDone(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if id, err = strconv.ParseUint(r.FormValue("id"), 10, 64); err != nil {
-		responseWithError(w, err)
+		http.Error(w, fmt.Sprintf(`{"error":"%s"}`, err.Error()), http.StatusInternalServerError)
 		return
 	}
 
@@ -345,9 +345,9 @@ func TaskDelete(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	//w.WriteHeader(http.StatusOK)
 	_, err = w.Write([]byte("{}"))
-	log.Println(fmt.Sprintf("Delete task. Id = %d", task.ID))
 
 	if err != nil {
 		responseWithError(w, err)
 	}
+	log.Println(fmt.Sprintf("Delete task. Id = %d", task.ID))
 }
